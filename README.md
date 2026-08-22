@@ -3,6 +3,9 @@
 Your **accepted** quests as a browsable in-game list, grouped by the game's own
 quest-log regions, built on [questmarks](https://github.com/DrNefarius/questmarks/)' data.
 
+Download or clone this repository into your Windower `addons` folder, so that
+it sits at `Windower4/addons/questmarks-ui/` (you might need to remove the suffixes that GitHub adds when downloading (`-1.0.0`) or cloning (`-main`)), then in game:
+
 ```
 //lua load questmarks-ui
 ```
@@ -14,6 +17,14 @@ log, so it can go on a macro.
 **!! KNOWN ISSUE: The first click into the UI after loading could take a couple of seconds during which time the game does not seem to respond. Just give it a couple of seconds and it'll return back to normal and every subsequent click will be fast. !!**
 
 ---
+
+**Contents**
+
+- [Requires](#requires)
+- [What it does](#what-it-does)
+- [Commands](#commands)
+- [Testing](#testing)
+- [Credits and licence](#credits-and-licence)
 
 ## Requires
 
