@@ -1,3 +1,9 @@
+> **Ashita v4 port (branch `ashita`).** This repository also contains a port of questmarks-ui to Ashita v4, by Semil
+> (port 0.3.1), with DrNefarius credited as the original author. It needs the Ashita port of
+> [questmarks](https://github.com/jimm0thy/questmarks/tree/ashita) installed alongside it. See
+> [README_ASHITA.md](README_ASHITA.md) for install and usage; the rest of this README describes the original
+> Windower addon and its `//qmui` commands (`/qmui` on Ashita).
+
 # questmarks-ui
 
 Your **accepted** quests as a browsable in-game list, grouped by the game's own
