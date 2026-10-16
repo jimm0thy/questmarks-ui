@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.1.0'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.2.0'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -120,6 +120,9 @@ local function note_completions()
     if model.observe_completions() then save_seen() end
 end
 
+-- Where the quest log came from (see "Late load" below).
+local replay = {done = false, last_try = 0, used = false, saved = nil, count = 0, note = 'not tried'}
+
 local function qm_path()
     local p = settings.questmarks_path
     if type(p) == 'string' and p ~= '' then return p end
@@ -176,6 +179,7 @@ end)
 
 local function attach()
     local ok = model.attach(qm_path())
+    replay.done, replay.last_try = false, 0      -- a fresh attach starts with empty state: replay the saved log
     if ok then
         local m = model.meta or {}
         msg('reading questmarks: %s entries (%s quests, %s missions)',
@@ -571,6 +575,7 @@ local function cmd_diag()
     if draw.last_error then line('draw last error: %s', tostring(draw.last_error)) end
     line('imgui font: %.1f px, avg advance %.3f em  (text is scaled from this)',
          draw.font_px, draw.advance_em)
+    line('quest log source: %s%s', replay.note, replay.used and ' (from questmarks saved copy)' or '')
     line('port v%s by Semil, based on questmarks-ui v%s by DrNefarius', PORT_VERSION, ORIGINAL_VERSION)
     line('panel: %s at %d,%d scale %.2f', panel.is_open() and 'open' or 'closed',
          panel.S.x, panel.S.y, theme.scale)
@@ -806,6 +811,42 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
         for _, h in ipairs(HELP) do line('%s', h) end
     end
 end)
+
+-- ---------------------------------------------------------------------------
+-- Late load: replay the quest log questmarks saved
+-- ---------------------------------------------------------------------------
+
+--[[ The server sends the quest log at zone-in only. If this addon is loaded after that,
+     the panel would sit on "Reading your quest log..." until the next zone. questmarks
+     keeps a copy of the last packets it received (qm_log_cache.lua in its own folder);
+     when nothing has arrived yet, those are fed through the normal packet handler once.
+     A real packet from the server replaces them as soon as one arrives. ]]
+local logcache = require('qm_logcache')
+
+local function try_replay()
+    if replay.done or model.status ~= 'ok' then return end
+    if model.state_ready() then replay.done = true; replay.note = 'not needed (packets arrived)' return end
+    local now = os.clock()
+    if now - replay.last_try < 2 then return end
+    replay.last_try = now
+    local pl = windower.ffxi.get_player()
+    if not (pl and pl.name) then return end                  -- not logged in yet; try again
+    local list, saved = logcache.load(qm_path() .. 'qm_log_cache.lua', pl.name)
+    replay.done = true
+    if not list then
+        replay.note = 'no saved copy for ' .. pl.name
+        msg('no quest log yet. Zone once, or load questmarks before logging in so it can save a copy.')
+        return
+    end
+    for _, data in ipairs(list) do compat.fire('incoming chunk', 0x056, data) end
+    replay.used, replay.saved, replay.count = true, saved, #list
+    replay.note = 'replayed ' .. #list .. ' packets'
+    msg('using the quest log questmarks last saved%s. It refreshes by itself when you zone.',
+        saved and os.date(' (%H:%M, %d %b)', saved) or '')
+end
+
+windower.register_event('prerender', function() try_replay() end)
+windower.register_event('login', function() replay.done = false; replay.last_try = 0 end)
 
 -- ---------------------------------------------------------------------------
 -- Ashita glue: wires Ashita's events into the Windower-shaped handlers above

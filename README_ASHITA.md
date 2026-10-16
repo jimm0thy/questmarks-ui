@@ -9,6 +9,8 @@ built on the data of the questmarks addon (see the sibling Ashita port).
 2. Copy this folder to `Ashita/addons/questmarks-ui/` so that `questmarks-ui.lua` sits directly inside it.
 3. `/addon load questmarks-ui`
 
+The server only sends your quest log when you zone, so if the addon is loaded mid-session it starts from the copy questmarks last saved (`questmarks/qm_log_cache.lua`, written whenever questmarks sees the packets). Keep questmarks loaded (ideally at login) so that copy stays fresh; a real packet replaces it the moment one arrives. `/qmui diag` shows which source is in use.
+
 A closed book appears. Click it to open the log, click again to close, drag it where you like.
 `/qmui` (or `/questlog`) also opens and closes it, so it can go on a macro. `/qmui help` lists every command
 (the commands are the original's, with `//qmui` written `/qmui`).
