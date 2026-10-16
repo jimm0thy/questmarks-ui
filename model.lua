@@ -214,30 +214,12 @@ local function readable(path)
     return true
 end
 
---[[ res/zones.lua, read exactly the way questmarks reads it and for the same
-     reason: it is Windower's own directory, and `loadfile` on a plain data file
-     avoids `require('resources')`, which monkeypatches the base string and table
-     metatables for the sake of a lookup table. The argument is questmarks' own,
-     in its `NOTICE`. A missing file degrades to "zone 245", never to an
-     error. ]]
-local function load_zones()
-    if zones ~= nil then return zones end
-    zones = false
-    local ok, chunk = pcall(loadfile,
-        (windower.windower_path or '') .. 'res/zones.lua')
-    if ok and chunk then
-        local ok2, t = pcall(chunk)
-        if ok2 and type(t) == 'table' then zones = t end
-    end
-    return zones
-end
-
+--[[ Zone names come from Ashita's resource manager (via compat.res_name). A missing
+     name degrades to "zone 245", never to an error. ]]
 function model.zone_name(id)
     if type(id) ~= 'number' then return nil end
-    local z = load_zones()
-    local e = z and z[id]
-    local n = e and (e.en or e.english or e.name)
-    return n or ('zone ' .. id)
+    local ok, n = pcall(function() return require('compat').res_name('zones', id) end)
+    return (ok and n) or ('zone ' .. id)
 end
 
 local function fail(status, detail)

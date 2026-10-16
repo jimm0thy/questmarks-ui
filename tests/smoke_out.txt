@@ -1,0 +1,56 @@
+questmarks-ui: questmarks not found at ../questmarks/
+questmarks-ui: set the path with:  /qmui path <folder>
+questmarks-ui: status: no_addon -- questmarks not found at ../questmarks/
+   questmarks path: ../questmarks/
+   index: ? entries (? quests, ? missions)
+   marker colours: FALLBACK (render/markers unavailable)
+   step notes: unavailable -- questmarks/build/authored is not present
+   descriptions: not loaded yet, or build/rendered is not present
+   item names: not loaded yet (read lazily from res/ on first need)
+   text metrics: 8.06 px/char at size 11 (metrics table)
+   0x056 received: false
+   drawn objects: 502 prims/texts
+   draw backend: overlay window | rect=8 image=1 text=7 drawn last frame | errors=0
+   imgui font: 13.0 px, avg advance 0.538 em  (text is scaled from this)
+   port v0.1.0 by Semil, based on questmarks-ui v1.0.0 by DrNefarius
+   panel: open at 60,90 scale 1.00
+   lines: 0  selected: none
+   icon: on at 20,20  32px  showing the open book
+questmarks-ui: icon art MISSING: ./assets/book_open.png -- the icon will draw as nothing at all
+   viewport: 1920x1080
+   pane pages: page_left.png / page_right.png NOT BOTH FOUND -- panes are on their flat fills, so the navy tint has nothing to act on
+questmarks-ui: questmarks not found at ../questmarks/
+questmarks-ui: background tint: parchment
+   note: the page sheets are not both on disk, so the panes stay on their flat fills
+questmarks-ui: panel opacity 0.80
+questmarks-ui: scale 1.20
+questmarks-ui: filter: a
+questmarks-ui: filter cleared
+questmarks-ui: icon hidden
+   open the log with /qmui, and bring the icon back with /qmui icon on
+questmarks-ui: icon shown
+questmarks-ui: commands:
+   /qmui                 open or close the quest log
+   /qmui show | hide
+   /qmui accepted        show everything you have accepted (default)
+   /qmui handin          show only what is ready to hand in
+   /qmui here            show only what is in this zone
+   /qmui search <text>   filter by quest or region name
+   /qmui search          clear the filter
+   /qmui next | prev     move the selection
+   /qmui pick <n>        select the nth quest in the list
+   /qmui scroll <n>      scroll the quest list (negative scrolls up)
+   /qmui steps <n>       scroll the step detail on the right
+   /qmui top | bottom
+   /qmui fold <region>   collapse or expand a region by name
+   /qmui foldall | unfoldall
+   /qmui list            print the list to chat instead of drawing it
+   /qmui pos <x> <y>     move the window
+   /qmui icon            show or hide the book icon
+   /qmui icon pos <x> <y>  move the book icon (or just drag it)
+   /qmui bg [<name>]    pane background: navy, leather, parchment or mixed
+   /qmui scale <n>       0.6 to 2.5
+   /qmui opacity [<n>]   panel transparency, 0.15 to 1
+   /qmui path <folder>   where questmarks is installed
+   /qmui reload          re-read the index
+   /qmui diag            what is loaded, and how many objects are drawn

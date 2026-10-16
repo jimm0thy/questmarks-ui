@@ -12,14 +12,25 @@ are all in model.lua's header.
 Nothing here modifies questmarks.
 ]]
 
-_addon.name     = 'questmarks-ui'
-_addon.author   = 'DrNefarius'
-_addon.version  = '1.0.0'
-_addon.language = 'English'
-_addon.commands = {'qmui', 'questlog'}
+addon.name     = 'questmarks-ui'
+addon.author   = 'Semil (Ashita port); original by DrNefarius'
+addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
+addon.link     = 'https://github.com/'
+-- Two version numbers: this port's own, and the Windower release it was ported from.
+local PORT_VERSION     = '0.1.0'   -- Ashita port by Semil; bump on every port change
+local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
+addon.version  = PORT_VERSION
+-- Commands: /qmui and /questlog (was /qmui under Windower).
 
-local config  = require('config')
-local packets = require('packets')
+--[[ Windower-shaped facade over Ashita (see compat.lua). Installed as the global
+     `windower` BEFORE anything else loads, because every module here and the
+     questmarks core modules it pulls in reach for that global. ]]
+local compat = require('compat')
+windower = compat.windower
+require('platform')          -- the rest of the windower.* surface this addon uses
+
+local config  = require('qmui_settings')   -- own settings store (see qmui_settings.lua)
+local packets = require('qm_packets')      -- raw-packet decoders (replaces Windower's packets lib)
 
 local model = require('model')
 local resnames = require('resnames')
@@ -112,7 +123,7 @@ end
 local function qm_path()
     local p = settings.questmarks_path
     if type(p) == 'string' and p ~= '' then return p end
-    return (windower.windower_path or '') .. 'addons/questmarks/'
+    return require('platform').default_questmarks_path()
 end
 
 -- ---------------------------------------------------------------------------
@@ -555,6 +566,12 @@ local function cmd_diag()
     line('text metrics: %.2f px/char at size %d (%s)', cw, sz, src)
     line('0x056 received: %s', tostring(model.state_ready()))
     line('drawn objects: %d prims/texts', draw.count())
+    line('draw backend: %s | rect=%d image=%d text=%d drawn last frame | errors=%d',
+         tostring(draw.mode), draw.counts.rect, draw.counts.image, draw.counts.text, draw.errors)
+    if draw.last_error then line('draw last error: %s', tostring(draw.last_error)) end
+    line('imgui font: %.1f px, avg advance %.3f em  (text is scaled from this)',
+         draw.font_px, draw.advance_em)
+    line('port v%s by Semil, based on questmarks-ui v%s by DrNefarius', PORT_VERSION, ORIGINAL_VERSION)
     line('panel: %s at %d,%d scale %.2f', panel.is_open() and 'open' or 'closed',
          panel.S.x, panel.S.y, theme.scale)
     line('lines: %d  selected: %s', #panel.S.lines,
@@ -788,4 +805,54 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
         err('unknown command "%s"', cmd)
         for _, h in ipairs(HELP) do line('%s', h) end
     end
+end)
+
+-- ---------------------------------------------------------------------------
+-- Ashita glue: wires Ashita's events into the Windower-shaped handlers above
+-- ---------------------------------------------------------------------------
+
+local metrics = require('ui/metrics')
+local unpack_ = table.unpack or unpack
+
+local function try_register(event, name, fn)
+    local ok, e = pcall(ashita.events.register, event, name, fn)
+    if not ok then err('could not register %s: %s', event, tostring(e)) end
+end
+
+try_register('command', 'qmui_command', function(e)
+    local args = {}
+    for w in e.command:gmatch('%S+') do args[#args + 1] = w end
+    if args[1] ~= '/qmui' and args[1] ~= '/questlog' then return end
+    e.blocked = true
+    compat.fire('addon command', unpack_(args, 2))
+end)
+
+try_register('packet_in', 'qmui_packet_in', function(e)
+    compat.fire('incoming chunk', e.id, e.data)
+end)
+
+-- Ashita mouse messages (WM_*) -> the type codes the panel was written against.
+-- 0 move, 1 left down, 2 left up, 3 right/middle down, 4 right up, 5 middle up, 10 wheel.
+local MOUSE = {[512] = 0, [513] = 1, [514] = 2, [516] = 3, [517] = 4, [519] = 3, [520] = 5, [522] = 10}
+try_register('mouse', 'qmui_mouse', function(e)
+    local t = MOUSE[e.message]
+    if not t then return end
+    if compat.fire_ret('mouse', t, e.x, e.y, e.delta, e.blocked) then e.blocked = true end
+end)
+
+local font_applied = false
+try_register('d3d_present', 'qmui_present', function()
+    compat.tick()
+    local changed = draw.measure_font()
+    if changed or not font_applied then
+        font_applied = true
+        metrics.set_platform(draw.advance_em)
+        pcall(panel.invalidate)
+    end
+    compat.fire('prerender')
+    draw.flush()
+end)
+
+try_register('unload', 'qmui_unload', function()
+    compat.fire('unload')
 end)
