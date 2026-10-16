@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.2.0'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.1'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -177,10 +177,27 @@ launcher.set_saver(function(x, y)
     pcall(function() settings:save() end)
 end)
 
+--[[ questmarks keeps its settings in qm_settings_data.lua in its own folder. This addon only
+     READS the one flag it needs from it and never writes the file. ]]
+local expansions_on = false
+local function read_qm_expansions()
+    local ok, v = pcall(function()
+        local f = io.open(qm_path() .. 'qm_settings_data.lua', 'rb')
+        if not f then return nil end
+        local src = f:read('*a'); f:close()
+        local fn = load(src, '=qm_settings', 't', {})
+        local t = fn and fn()
+        return type(t) == 'table' and t.later_expansions or nil
+    end)
+    return ok and v == true
+end
+
 local function attach()
     local ok = model.attach(qm_path())
     replay.done, replay.last_try = false, 0      -- a fresh attach starts with empty state: replay the saved log
     if ok then
+        expansions_on = read_qm_expansions()
+        model.set_later_expansions(expansions_on)
         local m = model.meta or {}
         msg('reading questmarks: %s entries (%s quests, %s missions)',
             tostring(m.indexed or '?'), tostring(m.quests or '?'),
@@ -419,7 +436,8 @@ local HELP = {
     '/qmui scale <n>       0.6 to 2.5',
     '/qmui opacity [<n>]   panel transparency, 0.15 to 1',
     '/qmui path <folder>   where questmarks is installed',
-    '/qmui reload          re-read the index',
+    '/qmui reload          re-read the index (and questmarks\' expansions setting)',
+    '/qmui expansions      show the questmarks expansions setting this follows',
     '/qmui diag            what is loaded, and how many objects are drawn',
 }
 
@@ -575,6 +593,7 @@ local function cmd_diag()
     if draw.last_error then line('draw last error: %s', tostring(draw.last_error)) end
     line('imgui font: %.1f px, avg advance %.3f em  (text is scaled from this)',
          draw.font_px, draw.advance_em)
+    line('expansions (read from questmarks /qm expansions): %s', expansions_on and 'on' or 'off')
     line('quest log source: %s%s', replay.note, replay.used and ' (from questmarks saved copy)' or '')
     line('port v%s by Semil, based on questmarks-ui v%s by DrNefarius', PORT_VERSION, ORIGINAL_VERSION)
     line('panel: %s at %d,%d scale %.2f', panel.is_open() and 'open' or 'closed',
@@ -794,6 +813,12 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
         pcall(function() settings:save() end)
         pcall(panel.destroy)
         attach()
+
+    elseif cmd == 'expansions' then
+        msg('expansions = %s  (set with /qm expansions on|off in questmarks, then /qmui reload)',
+            expansions_on and 'on' or 'off')
+        line('on  = the server has WotG / Campaign / TVR / ... content (first mission shows while you are on it)')
+        line('off = a server without those expansions, such as HorizonXI (default)')
 
     elseif cmd == 'reload' then
         pcall(panel.destroy)

@@ -15,6 +15,11 @@ A closed book appears. Click it to open the log, click again to close, drag it w
 `/qmui` (or `/questlog`) also opens and closes it, so it can go on a macro. `/qmui help` lists every command
 (the commands are the original's, with `//qmui` written `/qmui`).
 
+**Which server?** Whether the first mission of the later-expansion lines (Wings of the Goddess, Campaign, TVR, ...) is listed
+depends on a questmarks setting, `/qm expansions on|off` (default off, correct for HorizonXI).
+This addon just follows it: change it in questmarks, then run `/qmui reload`. `/qmui expansions` shows the value in use.
+See questmarks' README_ASHITA.md for when to turn it on.
+
 If questmarks is somewhere else: `/qmui path <folder>`. By default it looks for the sibling folder `../questmarks/`.
 
 ## How it was ported

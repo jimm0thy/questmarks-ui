@@ -12,8 +12,9 @@ questmarks-ui: status: ok
    drawn objects: 502 prims/texts
    draw backend: overlay window | rect=88 image=1 text=64 drawn last frame | errors=0
    imgui font: 13.0 px, avg advance 0.538 em  (text is scaled from this)
+   expansions (read from questmarks /qm expansions): off
    quest log source: replayed 8 packets (from questmarks saved copy)
-   port v0.2.0 by Semil, based on questmarks-ui v1.0.0 by DrNefarius
+   port v0.3.1 by Semil, based on questmarks-ui v1.0.0 by DrNefarius
    panel: open at 60,90 scale 1.20
    lines: 89  selected: quest/bastok/1
    icon: on at 20,20  38px  showing the open book
@@ -142,5 +143,6 @@ questmarks-ui: commands:
    /qmui scale <n>       0.6 to 2.5
    /qmui opacity [<n>]   panel transparency, 0.15 to 1
    /qmui path <folder>   where questmarks is installed
-   /qmui reload          re-read the index
+   /qmui reload          re-read the index (and questmarks' expansions setting)
+   /qmui expansions      show the questmarks expansions setting this follows
    /qmui diag            what is loaded, and how many objects are drawn

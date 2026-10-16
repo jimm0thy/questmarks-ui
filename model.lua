@@ -350,6 +350,14 @@ function model.attach(path)
     return true
 end
 
+--[[ Does this server have the later-expansion content? A questmarks setting (`/qm expansions`);
+     the UI only mirrors it. Feature-detected, so an older questmarks without it is fine. ]]
+function model.set_later_expansions(on)
+    if model.status ~= 'ok' or not state then return false end
+    if type(state.set_later_expansions) ~= 'function' then return false end
+    return pcall(state.set_later_expansions, on and true or false)
+end
+
 --[[ -> {[step index] = note} or nil. Optional enrichment; see notes.lua for the
      licence reading that keeps this a read of the player's own disk rather than
      something this addon redistributes. ]]
