@@ -7,14 +7,14 @@ shuts. It can be dragged anywhere and it remembers where it was left.
 
 Why a launcher at all. A command is a poor default for a thing you open twenty
 times a session, and FFXI has no keybind an addon can claim without asking, so the
-alternative to an icon is typing into the chat box every time. `//qmui` is unchanged
+alternative to an icon is typing into the chat box every time. `/qmui` is unchanged
 and is still the one a macro can bind; this is an additional door, not a replacement
 for it.
 
 The state is derived, never stored. Which texture to draw is read from
 `panel.is_open()` on every frame rather than set when something is clicked. A
 parallel boolean that has to stay in sync with the panel will come apart, because
-the panel closes from six places, the X button, `//qmui`, `//qmui hide`, the
+the panel closes from six places, the X button, `/qmui`, `/qmui hide`, the
 launcher itself, a draw failure and a `reload`, and every one of them would have to
 remember to tell the icon. Looking cannot be wrong.
 
@@ -40,7 +40,7 @@ local theme = require('ui/theme')
 local panel = require('ui/panel')
 
 --[[ 32 px at scale 1.0, so 19 px at the 0.6 floor and 80 px at the 2.5 ceiling.
-     It follows `//qmui scale` because a player who scaled the panel up did so
+     It follows `/qmui scale` because a player who scaled the panel up did so
      because the default was too small to read, and an icon that stayed 32 px would
      be the one thing on screen still too small. ]]
 local BASE = 32
@@ -124,7 +124,7 @@ function launcher.set_on(v)
     S.on = v and true or false
     --[[ Hidden means hidden immediately, not on the next frame. render() would do
          it anyway, but only if it runs, and a prerender handler that is throwing is
-         exactly when a player reaches for `//qmui icon off`. ]]
+         exactly when a player reaches for `/qmui icon off`. ]]
     if not S.on and W then
         W.img:visible(false)
     end
@@ -295,7 +295,7 @@ function launcher.on_mouse(mtype, x, y)
     return false
 end
 
---[[ For //qmui diag, which is the whole diagnosis path for "where has it gone". ]]
+--[[ For /qmui diag, which is the whole diagnosis path for "where has it gone". ]]
 function launcher.diag()
     local g = launcher.geom()
     local vw, vh = viewport()

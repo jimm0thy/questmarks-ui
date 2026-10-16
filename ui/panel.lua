@@ -111,7 +111,7 @@ local W = {}               -- widget pool
 local LINES = 20           -- rows in the pool; scrolling moves data through them
 local DETAIL_LINES = 40    -- text-line pool for the detail pane
 local DPITCH_BASE = 13     -- px between detail lines, before scaling
---[[ NOT scaled, and that is a known defect rather than a decision. `//qmui
+--[[ NOT scaled, and that is a known defect rather than a decision. `/qmui
      scale` reaches theme.apply_scale, which rewrites every `fs_*` and
      `theme.d_line`, then rebuilds this pool. Nothing recomputes DPITCH, so at
      any scale but 1.0 the detail pane keeps a 13 px pitch under fonts that

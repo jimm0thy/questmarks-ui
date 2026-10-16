@@ -214,30 +214,12 @@ local function readable(path)
     return true
 end
 
---[[ res/zones.lua, read exactly the way questmarks reads it and for the same
-     reason: it is Windower's own directory, and `loadfile` on a plain data file
-     avoids `require('resources')`, which monkeypatches the base string and table
-     metatables for the sake of a lookup table. The argument is questmarks' own,
-     in its `NOTICE`. A missing file degrades to "zone 245", never to an
-     error. ]]
-local function load_zones()
-    if zones ~= nil then return zones end
-    zones = false
-    local ok, chunk = pcall(loadfile,
-        (windower.windower_path or '') .. 'res/zones.lua')
-    if ok and chunk then
-        local ok2, t = pcall(chunk)
-        if ok2 and type(t) == 'table' then zones = t end
-    end
-    return zones
-end
-
+--[[ Zone names come from Ashita's resource manager (via compat.res_name). A missing
+     name degrades to "zone 245", never to an error. ]]
 function model.zone_name(id)
     if type(id) ~= 'number' then return nil end
-    local z = load_zones()
-    local e = z and z[id]
-    local n = e and (e.en or e.english or e.name)
-    return n or ('zone ' .. id)
+    local ok, n = pcall(function() return require('compat').res_name('zones', id) end)
+    return (ok and n) or ('zone ' .. id)
 end
 
 local function fail(status, detail)
@@ -368,6 +350,14 @@ function model.attach(path)
     return true
 end
 
+--[[ Does this server have the later-expansion content? A questmarks setting (`/qm expansions`);
+     the UI only mirrors it. Feature-detected, so an older questmarks without it is fine. ]]
+function model.set_later_expansions(on)
+    if model.status ~= 'ok' or not state then return false end
+    if type(state.set_later_expansions) ~= 'function' then return false end
+    return pcall(state.set_later_expansions, on and true or false)
+end
+
 --[[ -> {[step index] = note} or nil. Optional enrichment; see notes.lua for the
      licence reading that keeps this a read of the player's own disk rather than
      something this addon redistributes. ]]
@@ -388,7 +378,7 @@ function model.notes_stats()
     return ok and s or {}
 end
 
---[[ Which vocabulary list the note filter is using. Surfaced so //qmui diag
+--[[ Which vocabulary list the note filter is using. Surfaced so /qmui diag
      can say whether it is questmarks' shared file or the bundled subset: a
      silently degraded filter is one nobody notices. ]]
 function model.notes_voice_source()

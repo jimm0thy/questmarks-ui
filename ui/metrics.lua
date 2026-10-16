@@ -70,6 +70,25 @@ end
 guard(M.regular, M.avg_regular)
 guard(M.bold, M.avg_bold)
 
+--[[ ASHITA PORT. The tables above describe Segoe UI, which is what Windower drew with.
+     Here the text is ImGui's own font, so layout has to be told what that font
+     measures. `adv` is its average glyph advance as a fraction of the em (ImGui's
+     default font is monospaced, so one number is exact for it; a proportional custom
+     font gets its average, which the 2% slack in width() does not fully cover, so
+     the panel may wrap a word early). The vertical numbers are for ImGui's default
+     font and are approximate. Called from the frame loop whenever the measured font
+     changes; the caller re-lays-out afterwards. ]]
+function M.set_platform(adv)
+    adv = tonumber(adv)
+    if not adv or adv <= 0 then return end
+    for i = 32, 126 do
+        rawset(M.regular, i, adv)
+        rawset(M.bold, i, adv)
+    end
+    M.avg_regular, M.avg_bold = adv, adv
+    M.line_h, M.ink_top, M.ink_h, M.cap_top, M.cap_h = 1.00, 0.12, 0.80, 0.20, 0.58
+end
+
 --[[ Width of `s` in pixels at `pt` points.
 
      The 2% slack covers hinting. The rasteriser rounds each glyph advance to a

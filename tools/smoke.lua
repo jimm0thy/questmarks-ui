@@ -327,7 +327,7 @@ if not cmd then print('FAIL  no addon command handler') os.exit(1) end
 local function run(...)
     local before = #chat
     local okc, e = pcall(cmd, ...)
-    local label = '//qmui ' .. table.concat({...}, ' ')
+    local label = '/qmui ' .. table.concat({...}, ' ')
     if okc then ok_(label, ('%d line(s)'):format(#chat - before))
     else fail_(label, e) end
 end
@@ -718,12 +718,12 @@ end
 -- What the chat commands print
 -- ---------------------------------------------------------------------------
 
-print('\n=== //qmui list ===')
+print('\n=== /qmui list ===')
 local mark = #chat
 pcall(cmd, 'list')
 for i = mark + 1, #chat do print('  ' .. chat[i]) end
 
-print('\n=== //qmui diag ===')
+print('\n=== /qmui diag ===')
 mark = #chat
 pcall(cmd, 'diag')
 for i = mark + 1, #chat do print('  ' .. chat[i]) end
@@ -1011,10 +1011,10 @@ do
         local bad = {}
         pcall(cmd, 'show')
         pcall(prerender)
-        if drawn_book() ~= 'open' then bad[#bad + 1] = '//qmui show -> ' .. drawn_book() end
+        if drawn_book() ~= 'open' then bad[#bad + 1] = '/qmui show -> ' .. drawn_book() end
         pcall(cmd, 'hide')
         pcall(prerender)
-        if drawn_book() ~= 'closed' then bad[#bad + 1] = '//qmui hide -> ' .. drawn_book() end
+        if drawn_book() ~= 'closed' then bad[#bad + 1] = '/qmui hide -> ' .. drawn_book() end
 
         -- And the X button, which is a different code path again.
         pcall(cmd, 'show')
@@ -1176,7 +1176,7 @@ do
         launcher.set_pos(20, 20)
     end
 
-    --[[ `//qmui` still opens the log. It is the form a macro binds, and it is the
+    --[[ `/qmui` still opens the log. It is the form a macro binds, and it is the
          thing most likely to be broken by putting a second door in front of
          it. ]]
     do
@@ -1187,9 +1187,9 @@ do
         pcall(cmd)
         local closed = panel.is_open()
         if not was and opened and not closed then
-            ok_('launcher: //qmui still toggles the log', 'unchanged by the icon')
+            ok_('launcher: /qmui still toggles the log', 'unchanged by the icon')
         else
-            fail_('launcher: //qmui toggle',
+            fail_('launcher: /qmui toggle',
                   ('%s -> %s -> %s'):format(tostring(was), tostring(opened),
                    tostring(closed)))
         end
@@ -1201,7 +1201,7 @@ do
         pcall(prerender)
         local ob = icon_obj()
         if not launcher.is_on() and ob and ob.vis == false then
-            ok_('launcher: //qmui icon off hides it', 'the prim goes invisible')
+            ok_('launcher: /qmui icon off hides it', 'the prim goes invisible')
         else
             fail_('launcher: icon off',
                   ('on=%s vis=%s'):format(tostring(launcher.is_on()),
@@ -1219,7 +1219,7 @@ do
         pcall(mouse, 2, hg.x + 4, hg.y + 4, 0, false)
         pcall(cmd, 'icon', 'on')
         pcall(prerender)
-        if launcher.is_on() then ok_('launcher: //qmui icon on brings it back') end
+        if launcher.is_on() then ok_('launcher: /qmui icon on brings it back') end
     end
 end
 
@@ -3384,7 +3384,7 @@ do
             end
         end
         if #bad == 0 then
-            ok_('background: //qmui bg switches the tint and saves it',
+            ok_('background: /qmui bg switches the tint and saves it',
                 table.concat(theme.bg_theme_names(), ' | '))
         else
             fail_('background: switching', table.concat(bad, ' | '))

@@ -1,8 +1,8 @@
 --[[
 questmarks-ui -- your accepted quests, as a browsable list grouped by region.
 
-    //qmui              open / close
-    //qmui help         every command
+    /qmui              open / close
+    /qmui help         every command
 
 Relationship to questmarks. This addon reads questmarks' data and drives its
 core modules; it never writes to it and does not require it to be loaded, only
@@ -12,14 +12,25 @@ are all in model.lua's header.
 Nothing here modifies questmarks.
 ]]
 
-_addon.name     = 'questmarks-ui'
-_addon.author   = 'DrNefarius'
-_addon.version  = '1.0.0'
-_addon.language = 'English'
-_addon.commands = {'qmui', 'questlog'}
+addon.name     = 'questmarks-ui'
+addon.author   = 'Semil (Ashita port); original by DrNefarius'
+addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
+addon.link     = 'https://github.com/'
+-- Two version numbers: this port's own, and the Windower release it was ported from.
+local PORT_VERSION     = '0.3.1'   -- Ashita port by Semil; bump on every port change
+local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
+addon.version  = PORT_VERSION
+-- Commands: /qmui and /questlog (was /qmui under Windower).
 
-local config  = require('config')
-local packets = require('packets')
+--[[ Windower-shaped facade over Ashita (see compat.lua). Installed as the global
+     `windower` BEFORE anything else loads, because every module here and the
+     questmarks core modules it pulls in reach for that global. ]]
+local compat = require('compat')
+windower = compat.windower
+require('platform')          -- the rest of the windower.* surface this addon uses
+
+local config  = require('qmui_settings')   -- own settings store (see qmui_settings.lua)
+local packets = require('qm_packets')      -- raw-packet decoders (replaces Windower's packets lib)
 
 local model = require('model')
 local resnames = require('resnames')
@@ -54,7 +65,7 @@ local defaults = {
     open_on_load = false,
     show_when_map_open = false,
     --[[ The launcher, shown by default, because otherwise the addon loads with
-         nothing on screen and `//qmui` as the only way in.
+         nothing on screen and `/qmui` as the only way in.
 
          `icon_x` and `icon_y`, not a nested `icon = {x, y}` table. Both forms
          round-trip through Windower's XML, since these are legal element names,
@@ -109,10 +120,13 @@ local function note_completions()
     if model.observe_completions() then save_seen() end
 end
 
+-- Where the quest log came from (see "Late load" below).
+local replay = {done = false, last_try = 0, used = false, saved = nil, count = 0, note = 'not tried'}
+
 local function qm_path()
     local p = settings.questmarks_path
     if type(p) == 'string' and p ~= '' then return p end
-    return (windower.windower_path or '') .. 'addons/questmarks/'
+    return require('platform').default_questmarks_path()
 end
 
 -- ---------------------------------------------------------------------------
@@ -146,7 +160,7 @@ panel.S.x, panel.S.y = settings.x, settings.y
      settings file naming a preset this build has never heard of keeps navy and says
      so, instead of leaving the panes on nil. ]]
 if settings.bg and not theme.set_bg(settings.bg) then
-    err('unknown background "%s" -- using %s. try: //qmui bg',
+    err('unknown background "%s" -- using %s. try: /qmui bg',
         tostring(settings.bg), theme.bg_theme())
 end
 
@@ -163,16 +177,34 @@ launcher.set_saver(function(x, y)
     pcall(function() settings:save() end)
 end)
 
+--[[ questmarks keeps its settings in qm_settings_data.lua in its own folder. This addon only
+     READS the one flag it needs from it and never writes the file. ]]
+local expansions_on = false
+local function read_qm_expansions()
+    local ok, v = pcall(function()
+        local f = io.open(qm_path() .. 'qm_settings_data.lua', 'rb')
+        if not f then return nil end
+        local src = f:read('*a'); f:close()
+        local fn = load(src, '=qm_settings', 't', {})
+        local t = fn and fn()
+        return type(t) == 'table' and t.later_expansions or nil
+    end)
+    return ok and v == true
+end
+
 local function attach()
     local ok = model.attach(qm_path())
+    replay.done, replay.last_try = false, 0      -- a fresh attach starts with empty state: replay the saved log
     if ok then
+        expansions_on = read_qm_expansions()
+        model.set_later_expansions(expansions_on)
         local m = model.meta or {}
         msg('reading questmarks: %s entries (%s quests, %s missions)',
             tostring(m.indexed or '?'), tostring(m.quests or '?'),
             tostring(m.missions or '?'))
     else
         err('%s', model.detail or model.status)
-        err('set the path with:  //qmui path <folder>')
+        err('set the path with:  /qmui path <folder>')
     end
     panel.invalidate()
     return ok
@@ -331,7 +363,7 @@ end)
 
      Do not put an `is_open` guard here. panel.on_mouse opens by honouring a
      pending release even with the panel closed, and a guard here means that
-     branch is never reached: press on a row, close the panel with `//qmui` or a
+     branch is never reached: press on a row, close the panel with `/qmui` or a
      macro before letting go, and the release reaches the client as an orphan and
      leaves mouse-look believing a button is still down. on_mouse's own guard is
      the only one needed, and it returns false in O(1) when nothing is
@@ -361,7 +393,7 @@ windower.register_event('unload', function()
         settings.x, settings.y = panel.S.x, panel.S.y
         settings.scale = theme.scale
         --[[ A backstop, not the primary save: a drag persists itself the moment it
-             ends. This catches `//qmui icon pos`, and where the position was
+             ends. This catches `/qmui icon pos`, and where the position was
              already saved and nothing has changed it costs one identical write. ]]
         local lg = launcher.geom()
         settings.icon = launcher.is_on()
@@ -382,30 +414,31 @@ end)
      only reach by clicking is a list you sometimes cannot reach. See
      ui/panel.lua's header. ]]
 local HELP = {
-    '//qmui                 open or close the quest log',
-    '//qmui show | hide',
-    '//qmui accepted        show everything you have accepted (default)',
-    '//qmui handin          show only what is ready to hand in',
-    '//qmui here            show only what is in this zone',
-    '//qmui search <text>   filter by quest or region name',
-    '//qmui search          clear the filter',
-    '//qmui next | prev     move the selection',
-    '//qmui pick <n>        select the nth quest in the list',
-    '//qmui scroll <n>      scroll the quest list (negative scrolls up)',
-    '//qmui steps <n>       scroll the step detail on the right',
-    '//qmui top | bottom',
-    '//qmui fold <region>   collapse or expand a region by name',
-    '//qmui foldall | unfoldall',
-    '//qmui list            print the list to chat instead of drawing it',
-    '//qmui pos <x> <y>     move the window',
-    '//qmui icon            show or hide the book icon',
-    '//qmui icon pos <x> <y>  move the book icon (or just drag it)',
-    '//qmui bg [<name>]    pane background: navy, leather, parchment or mixed',
-    '//qmui scale <n>       0.6 to 2.5',
-    '//qmui opacity [<n>]   panel transparency, 0.15 to 1',
-    '//qmui path <folder>   where questmarks is installed',
-    '//qmui reload          re-read the index',
-    '//qmui diag            what is loaded, and how many objects are drawn',
+    '/qmui                 open or close the quest log',
+    '/qmui show | hide',
+    '/qmui accepted        show everything you have accepted (default)',
+    '/qmui handin          show only what is ready to hand in',
+    '/qmui here            show only what is in this zone',
+    '/qmui search <text>   filter by quest or region name',
+    '/qmui search          clear the filter',
+    '/qmui next | prev     move the selection',
+    '/qmui pick <n>        select the nth quest in the list',
+    '/qmui scroll <n>      scroll the quest list (negative scrolls up)',
+    '/qmui steps <n>       scroll the step detail on the right',
+    '/qmui top | bottom',
+    '/qmui fold <region>   collapse or expand a region by name',
+    '/qmui foldall | unfoldall',
+    '/qmui list            print the list to chat instead of drawing it',
+    '/qmui pos <x> <y>     move the window',
+    '/qmui icon            show or hide the book icon',
+    '/qmui icon pos <x> <y>  move the book icon (or just drag it)',
+    '/qmui bg [<name>]    pane background: navy, leather, parchment or mixed',
+    '/qmui scale <n>       0.6 to 2.5',
+    '/qmui opacity [<n>]   panel transparency, 0.15 to 1',
+    '/qmui path <folder>   where questmarks is installed',
+    '/qmui reload          re-read the index (and questmarks\' expansions setting)',
+    '/qmui expansions      show the questmarks expansions setting this follows',
+    '/qmui diag            what is loaded, and how many objects are drawn',
 }
 
 --[[ Selection moves over quest rows only, skipping region headers. Landing the
@@ -471,7 +504,7 @@ local function cmd_pick(n)
     local S = panel.S
     if S.dirty then panel.rebuild() end
     n = tonumber(n)
-    if not n then err('usage: //qmui pick <n>') return end
+    if not n then err('usage: /qmui pick <n>') return end
     local c = 0
     for i, l in ipairs(S.lines) do
         if l.kind == 'row' then
@@ -491,7 +524,7 @@ end
 local function cmd_fold(name)
     local S = panel.S
     if S.dirty then panel.rebuild() end
-    if not name or name == '' then err('usage: //qmui fold <region>') return end
+    if not name or name == '' then err('usage: /qmui fold <region>') return end
     local pat = name:lower()
     for _, l in ipairs(S.lines) do
         if l.kind == 'group' and l.group.name:lower():find(pat, 1, true) then
@@ -555,6 +588,14 @@ local function cmd_diag()
     line('text metrics: %.2f px/char at size %d (%s)', cw, sz, src)
     line('0x056 received: %s', tostring(model.state_ready()))
     line('drawn objects: %d prims/texts', draw.count())
+    line('draw backend: %s | rect=%d image=%d text=%d drawn last frame | errors=%d',
+         tostring(draw.mode), draw.counts.rect, draw.counts.image, draw.counts.text, draw.errors)
+    if draw.last_error then line('draw last error: %s', tostring(draw.last_error)) end
+    line('imgui font: %.1f px, avg advance %.3f em  (text is scaled from this)',
+         draw.font_px, draw.advance_em)
+    line('expansions (read from questmarks /qm expansions): %s', expansions_on and 'on' or 'off')
+    line('quest log source: %s%s', replay.note, replay.used and ' (from questmarks saved copy)' or '')
+    line('port v%s by Semil, based on questmarks-ui v%s by DrNefarius', PORT_VERSION, ORIGINAL_VERSION)
     line('panel: %s at %d,%d scale %.2f', panel.is_open() and 'open' or 'closed',
          panel.S.x, panel.S.y, theme.scale)
     line('lines: %d  selected: %s', #panel.S.lines,
@@ -655,7 +696,7 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
 
     elseif cmd == 'pos' then
         local x, y = tonumber(a1), tonumber(a2)
-        if not x or not y then err('usage: //qmui pos <x> <y>') return end
+        if not x or not y then err('usage: /qmui pos <x> <y>') return end
         panel.S.x, panel.S.y = x, y
         settings.x, settings.y = x, y
         pcall(function() settings:save() end)
@@ -669,9 +710,9 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
     elseif cmd == 'icon' then
         if a1 == 'pos' then
             local x, y = tonumber(a2), tonumber((select(1, ...)))
-            if not x or not y then err('usage: //qmui icon pos <x> <y>') return end
+            if not x or not y then err('usage: /qmui icon pos <x> <y>') return end
             if not launcher.set_pos(x, y) then
-                err('usage: //qmui icon pos <x> <y>') return
+                err('usage: /qmui icon pos <x> <y>') return
             end
             local g = launcher.geom()
             settings.icon_x, settings.icon_y = g.x, g.y
@@ -687,14 +728,14 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
             if a1 == 'on' or a1 == 'show' then v = true
             elseif a1 == 'off' or a1 == 'hide' then v = false
             elseif a1 == nil or a1 == '' then v = nil
-            else err('usage: //qmui icon [on | off | pos <x> <y>]') return end
+            else err('usage: /qmui icon [on | off | pos <x> <y>]') return end
             local on = launcher.set_on(v)
             settings.icon = on
             pcall(function() settings:save() end)
             msg('icon %s', on and 'shown' or 'hidden')
             if not on then
-                line('open the log with //qmui, and bring the icon back with '
-                     .. '//qmui icon on')
+                line('open the log with /qmui, and bring the icon back with '
+                     .. '/qmui icon on')
             end
         end
 
@@ -727,7 +768,7 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
 
     elseif cmd == 'scale' then
         local v = tonumber(a1)
-        if not v then err('usage: //qmui scale <0.6-2.5>') return end
+        if not v then err('usage: /qmui scale <0.6-2.5>') return end
         --[[ Every cached size changes, so the pool is rebuilt from scratch. This
              is the one place objects are destroyed outside unload, and it is safe
              because it happens on a command and not during a frame, which is the
@@ -752,7 +793,7 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
             return
         end
         local v = tonumber(a1)
-        if not v then err('usage: //qmui opacity <0.15-1>') return end
+        if not v then err('usage: /qmui opacity <0.15-1>') return end
         --[[ Colours only, so the pool is not rebuilt: `scale` destroys it
              because every cached SIZE changes, and nothing here does.
              invalidate() is enough to redraw the surfaces. ]]
@@ -773,6 +814,12 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
         pcall(panel.destroy)
         attach()
 
+    elseif cmd == 'expansions' then
+        msg('expansions = %s  (set with /qm expansions on|off in questmarks, then /qmui reload)',
+            expansions_on and 'on' or 'off')
+        line('on  = the server has WotG / Campaign / TVR / ... content (first mission shows while you are on it)')
+        line('off = a server without those expansions, such as HorizonXI (default)')
+
     elseif cmd == 'reload' then
         pcall(panel.destroy)
         attach()
@@ -788,4 +835,90 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
         err('unknown command "%s"', cmd)
         for _, h in ipairs(HELP) do line('%s', h) end
     end
+end)
+
+-- ---------------------------------------------------------------------------
+-- Late load: replay the quest log questmarks saved
+-- ---------------------------------------------------------------------------
+
+--[[ The server sends the quest log at zone-in only. If this addon is loaded after that,
+     the panel would sit on "Reading your quest log..." until the next zone. questmarks
+     keeps a copy of the last packets it received (qm_log_cache.lua in its own folder);
+     when nothing has arrived yet, those are fed through the normal packet handler once.
+     A real packet from the server replaces them as soon as one arrives. ]]
+local logcache = require('qm_logcache')
+
+local function try_replay()
+    if replay.done or model.status ~= 'ok' then return end
+    if model.state_ready() then replay.done = true; replay.note = 'not needed (packets arrived)' return end
+    local now = os.clock()
+    if now - replay.last_try < 2 then return end
+    replay.last_try = now
+    local pl = windower.ffxi.get_player()
+    if not (pl and pl.name) then return end                  -- not logged in yet; try again
+    local list, saved = logcache.load(qm_path() .. 'qm_log_cache.lua', pl.name)
+    replay.done = true
+    if not list then
+        replay.note = 'no saved copy for ' .. pl.name
+        msg('no quest log yet. Zone once, or load questmarks before logging in so it can save a copy.')
+        return
+    end
+    for _, data in ipairs(list) do compat.fire('incoming chunk', 0x056, data) end
+    replay.used, replay.saved, replay.count = true, saved, #list
+    replay.note = 'replayed ' .. #list .. ' packets'
+    msg('using the quest log questmarks last saved%s. It refreshes by itself when you zone.',
+        saved and os.date(' (%H:%M, %d %b)', saved) or '')
+end
+
+windower.register_event('prerender', function() try_replay() end)
+windower.register_event('login', function() replay.done = false; replay.last_try = 0 end)
+
+-- ---------------------------------------------------------------------------
+-- Ashita glue: wires Ashita's events into the Windower-shaped handlers above
+-- ---------------------------------------------------------------------------
+
+local metrics = require('ui/metrics')
+local unpack_ = table.unpack or unpack
+
+local function try_register(event, name, fn)
+    local ok, e = pcall(ashita.events.register, event, name, fn)
+    if not ok then err('could not register %s: %s', event, tostring(e)) end
+end
+
+try_register('command', 'qmui_command', function(e)
+    local args = {}
+    for w in e.command:gmatch('%S+') do args[#args + 1] = w end
+    if args[1] ~= '/qmui' and args[1] ~= '/questlog' then return end
+    e.blocked = true
+    compat.fire('addon command', unpack_(args, 2))
+end)
+
+try_register('packet_in', 'qmui_packet_in', function(e)
+    compat.fire('incoming chunk', e.id, e.data)
+end)
+
+-- Ashita mouse messages (WM_*) -> the type codes the panel was written against.
+-- 0 move, 1 left down, 2 left up, 3 right/middle down, 4 right up, 5 middle up, 10 wheel.
+local MOUSE = {[512] = 0, [513] = 1, [514] = 2, [516] = 3, [517] = 4, [519] = 3, [520] = 5, [522] = 10}
+try_register('mouse', 'qmui_mouse', function(e)
+    local t = MOUSE[e.message]
+    if not t then return end
+    if compat.fire_ret('mouse', t, e.x, e.y, e.delta, e.blocked) then e.blocked = true end
+end)
+
+local font_applied = false
+try_register('d3d_present', 'qmui_present', function()
+    compat.tick()
+    local changed = draw.measure_font()
+    if changed or not font_applied then
+        font_applied = true
+        metrics.set_platform(draw.advance_em)
+        pcall(panel.invalidate)
+    end
+    compat.fire('prerender')
+    draw.flush()
+end)
+
+try_register('unload', 'qmui_unload', function()
+    compat.fire('unload')
 end)

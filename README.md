@@ -11,7 +11,7 @@ it sits at `Windower4/addons/questmarks-ui/` (you might need to remove the suffi
 ```
 
 A closed book appears. Click it to open the quest log, click it again to close.
-Drag it wherever you like and it stays there. `//qmui` still opens and closes the
+Drag it wherever you like and it stays there. `/qmui` still opens and closes the
 log, so it can go on a macro.
 
 **!! KNOWN ISSUE: The first click into the UI after loading could take a couple of seconds during which time the game does not seem to respond. Just give it a couple of seconds and it'll return back to normal and every subsequent click will be fast. !!**
@@ -30,7 +30,7 @@ log, so it can go on a macro.
 
 **questmarks, installed**, though not necessarily loaded. It is found
 automatically at `<Windower>/addons/questmarks/`; override with
-`//qmui path <folder>`. This addon reads questmarks' data and runs its `core/`
+`/qmui path <folder>`. This addon reads questmarks' data and runs its `core/`
 modules in its own Lua state. It never writes to questmarks and never modifies
 it.
 
@@ -43,7 +43,7 @@ else changes and nothing breaks.
 
 If questmarks is missing, is the wrong version, or the game has not sent your
 quest log yet, the panel says which in a sentence and does nothing else. It never
-throws. `//qmui diag` reports exactly what it found, including which of these
+throws. `/qmui diag` reports exactly what it found, including which of these
 optional pieces are present.
 
 ## What it does
@@ -68,8 +68,8 @@ optional pieces are present.
   evidence the client will report, so the ladder often cannot tell which of
   several steps you are on. It says so, and shows what each one involves rather
   than pointing at one of them.
-- **Four backgrounds** switchable with `//qmui bg <name>`, each held to a
-  measured contrast floor by the test suite, and `//qmui opacity <n>` to see
+- **Four backgrounds** switchable with `/qmui bg <name>`, each held to a
+  measured contrast floor by the test suite, and `/qmui opacity <n>` to see
   the world through the panel. Opacity moves the panel surfaces only: the text
   keeps its own alpha, so those contrast floors still describe what is drawn.
 
@@ -77,21 +77,21 @@ optional pieces are present.
 
 | | |
 |---|---|
-| `//qmui` | open / close |
-| `//qmui accepted` / `handin` / `here` | everything accepted (default) / only what is ready to hand in / only what is in this zone |
-| `//qmui search <text>` | filter by quest or region name; no argument clears |
-| `//qmui next` / `prev` / `pick <n>` | move the selection |
-| `//qmui scroll <n>` / `top` / `bottom` | scroll the list |
-| `//qmui steps <n>` | scroll the detail pane |
-| `//qmui fold <region>` / `foldall` / `unfoldall` | collapse regions |
-| `//qmui list` | print the whole list to chat instead |
-| `//qmui pos <x> <y>` / `scale <0.6-2.5>` | move / resize |
-| `//qmui icon` / `icon on` / `icon off` | show or hide the book |
-| `//qmui icon pos <x> <y>` | move the book without the mouse |
-| `//qmui bg <name>` | pane background: navy, leather, parchment or mixed |
-| `//qmui opacity <0.15-1>` | how solid the panel is; no argument reports it |
-| `//qmui path <folder>` | where questmarks is installed |
-| `//qmui reload` / `diag` | re-read the index / what is loaded |
+| `/qmui` | open / close |
+| `/qmui accepted` / `handin` / `here` | everything accepted (default) / only what is ready to hand in / only what is in this zone |
+| `/qmui search <text>` | filter by quest or region name; no argument clears |
+| `/qmui next` / `prev` / `pick <n>` | move the selection |
+| `/qmui scroll <n>` / `top` / `bottom` | scroll the list |
+| `/qmui steps <n>` | scroll the detail pane |
+| `/qmui fold <region>` / `foldall` / `unfoldall` | collapse regions |
+| `/qmui list` | print the whole list to chat instead |
+| `/qmui pos <x> <y>` / `scale <0.6-2.5>` | move / resize |
+| `/qmui icon` / `icon on` / `icon off` | show or hide the book |
+| `/qmui icon pos <x> <y>` | move the book without the mouse |
+| `/qmui bg <name>` | pane background: navy, leather, parchment or mixed |
+| `/qmui opacity <0.15-1>` | how solid the panel is; no argument reports it |
+| `/qmui path <folder>` | where questmarks is installed |
+| `/qmui reload` / `diag` | re-read the index / what is loaded |
 
 Mouse: click the book to open or close the log and drag it to move it; click a row
 to open its detail, a header to fold, the `x` to close, and use the wheel to

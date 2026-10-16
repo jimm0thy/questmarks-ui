@@ -66,19 +66,8 @@ local function compact(path)
 end
 
 local function ensure()
-    if loaded then return end
+    -- Nothing to preload on Ashita: names are looked up lazily, one id at a time.
     loaded = true
-    names = {}
-    local root = (windower and windower.windower_path or '') .. 'res/'
-    local t0 = os.clock()
-
-    local items, ni = compact(root .. 'items.lua')
-    local kis, nk = compact(root .. 'key_items.lua')
-    names.item = items
-    names.ki = kis
-    names.key_item = kis
-    stats.items, stats.key_items = ni or 0, nk or 0
-    stats.ms = (os.clock() - t0) * 1000
 end
 
 --[[ -> the name for `rid` of `kind`, or nil.
@@ -88,10 +77,16 @@ end
      better than saying an id. ]]
 function resnames.name(rid, kind)
     if type(rid) ~= 'number' then return nil end
-    local ok = pcall(ensure)
-    if not ok or not names then return nil end
-    local t = names[kind or 'item']
-    return t and t[rid] or nil
+    local ok, plat = pcall(require, 'platform')
+    if not ok or not plat then return nil end
+    local k = kind or 'item'
+    local ok2, n
+    if k == 'ki' or k == 'key_item' then
+        ok2, n = pcall(plat.key_item_name, rid)
+    else
+        ok2, n = pcall(plat.item_name, rid)
+    end
+    return ok2 and n or nil
 end
 
 --[[ -> a comma-joined list of the names in an `ev` or `reqs` array, with counts

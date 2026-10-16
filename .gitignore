@@ -37,3 +37,8 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# generated at runtime / by the tests
+qmui_settings_data.lua
+tests/smoke_out.txt
+*.log

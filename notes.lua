@@ -87,7 +87,7 @@ end
      the shape is real and the corpus has held them.
 
      It redacts nothing on the corpus shipped today, because questmarks'
-     `rewrite_notes.py` has since cleaned it, and `//qmui diag` says so. Keep it
+     `rewrite_notes.py` has since cleaned it, and `/qmui diag` says so. Keep it
      anyway: it is the guard that stops a re-authored note reaching a player in
      the maintainer's voice, and a filter is worth nothing the first time it is
      needed if it was deleted for being quiet.
@@ -208,7 +208,7 @@ function notes.attach(questmarks_path)
 
     --[[ The shared vocabulary, before any note is read. Not finding it is not an
          error, because the bundled fallback above covers the shapes that cost the
-         most, but which one is in use is reported by //qmui diag: a silently
+         most, but which one is in use is reported by /qmui diag: a silently
          degraded filter is one nobody notices. ]]
     voice_translate, voice_find, voice_match = nil, nil, nil
     if load_voice(p .. 'tools/pipeline/lib/player_voice.json') then

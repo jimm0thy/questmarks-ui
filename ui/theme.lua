@@ -174,7 +174,7 @@ local function apply_scale()
          `-` in a proportional face, 10.2 px against 6.0 at 11 pt, so a badge column
          hand-picked to clear the `-` has the `+` sitting on top of it, and only on the
          collapsed regions. A picked gap does not scale with a glyph either, so
-         `//qmui scale` makes that overlap worse rather than better.
+         `/qmui scale` makes that overlap worse rather than better.
 
          The badge therefore starts past the widest fold glyph plus a gap, the label past
          the badge, and the child columns past the label. Every one is derived from the
@@ -784,7 +784,7 @@ end
 
 function theme.bg_theme() return bg_theme end
 
---[[ The preset names, sorted, for `//qmui bg` and for the suite's sweep over all of
+--[[ The preset names, sorted, for `/qmui bg` and for the suite's sweep over all of
      them. Sorted so the command's output does not reorder itself between runs. ]]
 function theme.bg_theme_names()
     local out = {}
@@ -840,7 +840,7 @@ function theme.group_icon(key)
     return ico_path[key]
 end
 
---[[ For tools/smoke.lua and //qmui diag, which both need to distinguish "the sheets are
+--[[ For tools/smoke.lua and /qmui diag, which both need to distinguish "the sheets are
      drawn" from "a sheet is missing and the flat fill is standing in". Both panes must
      have theirs: one page of an open book is not an open book. ]]
 function theme.bg_available()

@@ -94,3 +94,10 @@ It matters that chronicle ships no LICENSE file, and that its BSD-3-Clause
 header sits on chronicle.lua alone and on none of the three files under
 chronicle/ui/ this design learned from. Reading for technique is safe on those
 terms; copying would not have been.
+
+
+ASHITA PORT
+-----------
+Ashita v4 port by Semil. The port replaces only the platform layer (drawing, input,
+events, settings); the model, panel, theme and all artwork are DrNefarius's, under
+the licence in LICENSE. Credit for the original addon stays with DrNefarius.
