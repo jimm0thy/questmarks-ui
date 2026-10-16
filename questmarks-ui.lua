@@ -1,8 +1,8 @@
 --[[
 questmarks-ui -- your accepted quests, as a browsable list grouped by region.
 
-    //qmui              open / close
-    //qmui help         every command
+    /qmui              open / close
+    /qmui help         every command
 
 Relationship to questmarks. This addon reads questmarks' data and drives its
 core modules; it never writes to it and does not require it to be loaded, only
@@ -54,7 +54,7 @@ local defaults = {
     open_on_load = false,
     show_when_map_open = false,
     --[[ The launcher, shown by default, because otherwise the addon loads with
-         nothing on screen and `//qmui` as the only way in.
+         nothing on screen and `/qmui` as the only way in.
 
          `icon_x` and `icon_y`, not a nested `icon = {x, y}` table. Both forms
          round-trip through Windower's XML, since these are legal element names,
@@ -146,7 +146,7 @@ panel.S.x, panel.S.y = settings.x, settings.y
      settings file naming a preset this build has never heard of keeps navy and says
      so, instead of leaving the panes on nil. ]]
 if settings.bg and not theme.set_bg(settings.bg) then
-    err('unknown background "%s" -- using %s. try: //qmui bg',
+    err('unknown background "%s" -- using %s. try: /qmui bg',
         tostring(settings.bg), theme.bg_theme())
 end
 
@@ -172,7 +172,7 @@ local function attach()
             tostring(m.missions or '?'))
     else
         err('%s', model.detail or model.status)
-        err('set the path with:  //qmui path <folder>')
+        err('set the path with:  /qmui path <folder>')
     end
     panel.invalidate()
     return ok
@@ -331,7 +331,7 @@ end)
 
      Do not put an `is_open` guard here. panel.on_mouse opens by honouring a
      pending release even with the panel closed, and a guard here means that
-     branch is never reached: press on a row, close the panel with `//qmui` or a
+     branch is never reached: press on a row, close the panel with `/qmui` or a
      macro before letting go, and the release reaches the client as an orphan and
      leaves mouse-look believing a button is still down. on_mouse's own guard is
      the only one needed, and it returns false in O(1) when nothing is
@@ -361,7 +361,7 @@ windower.register_event('unload', function()
         settings.x, settings.y = panel.S.x, panel.S.y
         settings.scale = theme.scale
         --[[ A backstop, not the primary save: a drag persists itself the moment it
-             ends. This catches `//qmui icon pos`, and where the position was
+             ends. This catches `/qmui icon pos`, and where the position was
              already saved and nothing has changed it costs one identical write. ]]
         local lg = launcher.geom()
         settings.icon = launcher.is_on()
@@ -382,30 +382,30 @@ end)
      only reach by clicking is a list you sometimes cannot reach. See
      ui/panel.lua's header. ]]
 local HELP = {
-    '//qmui                 open or close the quest log',
-    '//qmui show | hide',
-    '//qmui accepted        show everything you have accepted (default)',
-    '//qmui handin          show only what is ready to hand in',
-    '//qmui here            show only what is in this zone',
-    '//qmui search <text>   filter by quest or region name',
-    '//qmui search          clear the filter',
-    '//qmui next | prev     move the selection',
-    '//qmui pick <n>        select the nth quest in the list',
-    '//qmui scroll <n>      scroll the quest list (negative scrolls up)',
-    '//qmui steps <n>       scroll the step detail on the right',
-    '//qmui top | bottom',
-    '//qmui fold <region>   collapse or expand a region by name',
-    '//qmui foldall | unfoldall',
-    '//qmui list            print the list to chat instead of drawing it',
-    '//qmui pos <x> <y>     move the window',
-    '//qmui icon            show or hide the book icon',
-    '//qmui icon pos <x> <y>  move the book icon (or just drag it)',
-    '//qmui bg [<name>]    pane background: navy, leather, parchment or mixed',
-    '//qmui scale <n>       0.6 to 2.5',
-    '//qmui opacity [<n>]   panel transparency, 0.15 to 1',
-    '//qmui path <folder>   where questmarks is installed',
-    '//qmui reload          re-read the index',
-    '//qmui diag            what is loaded, and how many objects are drawn',
+    '/qmui                 open or close the quest log',
+    '/qmui show | hide',
+    '/qmui accepted        show everything you have accepted (default)',
+    '/qmui handin          show only what is ready to hand in',
+    '/qmui here            show only what is in this zone',
+    '/qmui search <text>   filter by quest or region name',
+    '/qmui search          clear the filter',
+    '/qmui next | prev     move the selection',
+    '/qmui pick <n>        select the nth quest in the list',
+    '/qmui scroll <n>      scroll the quest list (negative scrolls up)',
+    '/qmui steps <n>       scroll the step detail on the right',
+    '/qmui top | bottom',
+    '/qmui fold <region>   collapse or expand a region by name',
+    '/qmui foldall | unfoldall',
+    '/qmui list            print the list to chat instead of drawing it',
+    '/qmui pos <x> <y>     move the window',
+    '/qmui icon            show or hide the book icon',
+    '/qmui icon pos <x> <y>  move the book icon (or just drag it)',
+    '/qmui bg [<name>]    pane background: navy, leather, parchment or mixed',
+    '/qmui scale <n>       0.6 to 2.5',
+    '/qmui opacity [<n>]   panel transparency, 0.15 to 1',
+    '/qmui path <folder>   where questmarks is installed',
+    '/qmui reload          re-read the index',
+    '/qmui diag            what is loaded, and how many objects are drawn',
 }
 
 --[[ Selection moves over quest rows only, skipping region headers. Landing the
@@ -471,7 +471,7 @@ local function cmd_pick(n)
     local S = panel.S
     if S.dirty then panel.rebuild() end
     n = tonumber(n)
-    if not n then err('usage: //qmui pick <n>') return end
+    if not n then err('usage: /qmui pick <n>') return end
     local c = 0
     for i, l in ipairs(S.lines) do
         if l.kind == 'row' then
@@ -491,7 +491,7 @@ end
 local function cmd_fold(name)
     local S = panel.S
     if S.dirty then panel.rebuild() end
-    if not name or name == '' then err('usage: //qmui fold <region>') return end
+    if not name or name == '' then err('usage: /qmui fold <region>') return end
     local pat = name:lower()
     for _, l in ipairs(S.lines) do
         if l.kind == 'group' and l.group.name:lower():find(pat, 1, true) then
@@ -655,7 +655,7 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
 
     elseif cmd == 'pos' then
         local x, y = tonumber(a1), tonumber(a2)
-        if not x or not y then err('usage: //qmui pos <x> <y>') return end
+        if not x or not y then err('usage: /qmui pos <x> <y>') return end
         panel.S.x, panel.S.y = x, y
         settings.x, settings.y = x, y
         pcall(function() settings:save() end)
@@ -669,9 +669,9 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
     elseif cmd == 'icon' then
         if a1 == 'pos' then
             local x, y = tonumber(a2), tonumber((select(1, ...)))
-            if not x or not y then err('usage: //qmui icon pos <x> <y>') return end
+            if not x or not y then err('usage: /qmui icon pos <x> <y>') return end
             if not launcher.set_pos(x, y) then
-                err('usage: //qmui icon pos <x> <y>') return
+                err('usage: /qmui icon pos <x> <y>') return
             end
             local g = launcher.geom()
             settings.icon_x, settings.icon_y = g.x, g.y
@@ -687,14 +687,14 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
             if a1 == 'on' or a1 == 'show' then v = true
             elseif a1 == 'off' or a1 == 'hide' then v = false
             elseif a1 == nil or a1 == '' then v = nil
-            else err('usage: //qmui icon [on | off | pos <x> <y>]') return end
+            else err('usage: /qmui icon [on | off | pos <x> <y>]') return end
             local on = launcher.set_on(v)
             settings.icon = on
             pcall(function() settings:save() end)
             msg('icon %s', on and 'shown' or 'hidden')
             if not on then
-                line('open the log with //qmui, and bring the icon back with '
-                     .. '//qmui icon on')
+                line('open the log with /qmui, and bring the icon back with '
+                     .. '/qmui icon on')
             end
         end
 
@@ -727,7 +727,7 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
 
     elseif cmd == 'scale' then
         local v = tonumber(a1)
-        if not v then err('usage: //qmui scale <0.6-2.5>') return end
+        if not v then err('usage: /qmui scale <0.6-2.5>') return end
         --[[ Every cached size changes, so the pool is rebuilt from scratch. This
              is the one place objects are destroyed outside unload, and it is safe
              because it happens on a command and not during a frame, which is the
@@ -752,7 +752,7 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
             return
         end
         local v = tonumber(a1)
-        if not v then err('usage: //qmui opacity <0.15-1>') return end
+        if not v then err('usage: /qmui opacity <0.15-1>') return end
         --[[ Colours only, so the pool is not rebuilt: `scale` destroys it
              because every cached SIZE changes, and nothing here does.
              invalidate() is enough to redraw the surfaces. ]]

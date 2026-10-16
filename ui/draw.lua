@@ -41,7 +41,7 @@ Named globals. Prims and text objects are named objects owned by the client, not
 by this Lua state. An orphaned name stays on screen until Windower restarts, so
 every object this module creates is recorded in `owned`, names are deterministic
 (`qmui_<kind>_<n>`), and `draw.destroy_all()` deletes every one. It is called
-from the 'unload' event and from `//qmui reload`.
+from the 'unload' event and from `/qmui reload`.
 ]]
 
 local draw = {}

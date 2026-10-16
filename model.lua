@@ -388,7 +388,7 @@ function model.notes_stats()
     return ok and s or {}
 end
 
---[[ Which vocabulary list the note filter is using. Surfaced so //qmui diag
+--[[ Which vocabulary list the note filter is using. Surfaced so /qmui diag
      can say whether it is questmarks' shared file or the bundled subset: a
      silently degraded filter is one nobody notices. ]]
 function model.notes_voice_source()
