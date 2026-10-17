@@ -57,6 +57,14 @@ end
 -- Textures (same approach as questmarks/render/backend.lua)
 -- ---------------------------------------------------------------------------
 
+--[[ Diagnostic switch: if a file named `notex.flag` exists in the addon folder, no textures are loaded or
+     drawn; images are drawn as plain grey squares. For ruling the texture path in or out of a crash. ]]
+draw.notex = false
+pcall(function()
+    local f = io.open(((addon and addon.path) or './') .. 'notex.flag', 'rb')
+    if f then f:close(); draw.notex = true end
+end)
+
 local texcache = {}      -- path -> {id=, keep=} | false
 local cdef_done = false
 
@@ -351,8 +359,11 @@ local function paint(dl)
         local o = prims[i]
         if o.vis and not o.dead and o.w > 0 and o.h > 0 then
             if o.kind == 'image' then
-                local tex = o.tex and o.tex ~= '' and load_texture(o.tex)
-                if tex then
+                local tex = (not draw.notex) and o.tex and o.tex ~= '' and load_texture(o.tex)
+                if draw.notex then
+                    local ok, e = pcall(dl.AddRectFilled, dl, {o.x, o.y}, {o.x + o.w, o.y + o.h}, abgr(160, 128, 128, 128))
+                    if ok then draw.counts.image = draw.counts.image + 1 else note_err('AddRectFilled', e) end
+                elseif tex then
                     local ok, e = pcall(dl.AddImage, dl, tex.id, {o.x, o.y}, {o.x + o.w, o.y + o.h},
                                         UV0, UV1, abgr(o.a, o.r, o.g, o.b))
                     if ok then draw.counts.image = draw.counts.image + 1 else note_err('AddImage', e) end
