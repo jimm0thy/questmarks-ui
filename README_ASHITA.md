@@ -52,3 +52,6 @@ adjusting; `/qmui diag` reports what was found:
 
 ## License
 MIT (see `LICENSE`), original by DrNefarius. Art provenance in `NOTICE`. Quest data comes from the questmarks addon (its own licences apply).
+
+## Tracking down a freeze or slowdown
+`/qmui blackbox on` appends one status line every 10 seconds to `blackbox.log` in the addon folder (Lua memory, draw counts, draw errors, whether the panel is open). After a freeze, the last line shows what the addon was doing. `/qmui blackbox off` stops it. It is off by default and is not remembered across reloads.

@@ -259,6 +259,12 @@ end
 
 function draw.count() return live end
 
+function draw.tex_count()
+    local n = 0
+    for _ in pairs(texcache) do n = n + 1 end
+    return n
+end
+
 local function compact(list)
     local n, dead = #list, 0
     for i = 1, n do if list[i].dead then dead = dead + 1 end end

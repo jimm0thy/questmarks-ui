@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.3.2'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.3'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -413,6 +413,36 @@ end)
      and it works, but FFXI captures the cursor often enough that a list you can
      only reach by clicking is a list you sometimes cannot reach. See
      ui/panel.lua's header. ]]
+-- ---------------------------------------------------------------------------
+-- Black box: `/qmui blackbox on` writes one status line every 10 s to blackbox.log, so that after a
+-- freeze the LAST line shows what the addon was doing (memory, draw counts, errors). Off by default.
+-- ---------------------------------------------------------------------------
+local bb = {on = false, last = 0, frames = 0, path = nil}
+
+local function bb_write(text)
+    pcall(function()
+        bb.path = bb.path or ((addon and addon.path or './') .. 'blackbox.log')
+        local f = io.open(bb.path, 'a')
+        if not f then return end
+        local size = f:seek('end') or 0
+        f:write(text, '\n'); f:close()
+        if size > 512 * 1024 then os.remove(bb.path .. '.old'); os.rename(bb.path, bb.path .. '.old') end
+    end)
+end
+
+local function bb_tick()
+    if not bb.on then return end
+    bb.frames = bb.frames + 1
+    local now = os.time()
+    if now - bb.last < 10 then return end
+    bb.last = now
+    bb_write(('%s cpu=%.1fs frames=%d lua=%dKB prims=%d tex=%d draw(rect/img/txt)=%d/%d/%d errors=%d open=%s%s'):format(
+        os.date('%H:%M:%S', now), os.clock(), bb.frames, math.floor(collectgarbage('count')),
+        draw.count(), draw.tex_count(), draw.counts.rect, draw.counts.image, draw.counts.text, draw.errors,
+        tostring(panel.is_open()), draw.last_error and (' last_error=' .. tostring(draw.last_error)) or ''))
+    bb.frames = 0
+end
+
 local HELP = {
     '/qmui                 open or close the quest log',
     '/qmui show | hide',
@@ -436,6 +466,7 @@ local HELP = {
     '/qmui scale <n>       0.6 to 2.5',
     '/qmui opacity [<n>]   panel transparency, 0.15 to 1',
     '/qmui path <folder>   where questmarks is installed',
+    '/qmui blackbox on|off write a status line every 10 s to blackbox.log (for tracking down freezes)',
     '/qmui reload          re-read the index (and questmarks\' expansions setting)',
     '/qmui expansions      show the questmarks expansions setting this follows',
     '/qmui diag            what is loaded, and how many objects are drawn',
@@ -827,6 +858,12 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
     elseif cmd == 'diag' then
         cmd_diag()
 
+    elseif cmd == 'blackbox' then
+        local v = (a1 or ''):lower()
+        if v == 'on' then bb.on, bb.last = true, 0; bb_write(os.date('%H:%M:%S') .. ' -- blackbox on, port v' .. PORT_VERSION)
+        elseif v == 'off' then bb.on = false end
+        msg('blackbox = %s  (writes blackbox.log in the addon folder every 10 s; /qmui blackbox on|off)', bb.on and 'on' or 'off')
+
     elseif cmd == 'help' then
         msg('commands:')
         for _, h in ipairs(HELP) do line('%s', h) end
@@ -917,6 +954,7 @@ try_register('d3d_present', 'qmui_present', function()
     end
     compat.fire('prerender')
     draw.flush()
+    bb_tick()
 end)
 
 try_register('unload', 'qmui_unload', function()
