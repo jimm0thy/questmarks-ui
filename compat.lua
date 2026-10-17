@@ -261,13 +261,24 @@ function windower.register_event(name, fn)
     table.insert(handlers[name], fn)
 end
 
+--[[ A handler that fails does so every frame (60+ times a second) or on every mouse move. Writing each
+     failure to disk and to chat floods both, and a flood is a plausible cause of the game stalling after a
+     few minutes. So each distinct failure is reported the first 3 times, then every 5000th time, with a count. ]]
+local failures = {}
+local function report_failure(name, e)
+    local key = name .. '|' .. tostring(e)
+    local n = (failures[key] or 0) + 1
+    failures[key] = n
+    if n > 3 and n % 5000 ~= 0 then return end
+    local text = 'handler ' .. name .. ' failed' .. (n > 3 and (' (x' .. n .. ')') or '') .. ': ' .. tostring(e)
+    compat.flog('questmarks-ui.log', text)
+    if n <= 3 and type(print) == 'function' then print('questmarks-ui: ' .. text) end
+end
+
 function compat.fire(name, ...)
     for _, fn in ipairs(handlers[name] or {}) do
         local ok, e = pcall(fn, ...)
-        if not ok then
-            compat.flog('questmarks-ui.log', 'handler ' .. name .. ' failed: ' .. tostring(e))
-            if type(print) == 'function' then print('questmarks-ui: handler ' .. name .. ' failed: ' .. tostring(e)) end
-        end
+        if not ok then report_failure(name, e) end
     end
 end
 
@@ -276,8 +287,7 @@ function compat.fire_ret(name, ...)
     local blocked = false
     for _, fn in ipairs(handlers[name] or {}) do
         local ok, r = pcall(fn, ...)
-        if not ok then
-            compat.flog('questmarks-ui.log', 'handler ' .. name .. ' failed: ' .. tostring(r))
+        if not ok then report_failure(name, r)
         elseif r then blocked = true end
     end
     return blocked
