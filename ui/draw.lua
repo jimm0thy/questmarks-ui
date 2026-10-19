@@ -78,6 +78,18 @@ pcall(function()
 end)
 
 local texcache = {}      -- path -> {id=, keep=} | false
+
+--[[ Zoning guard. Crashes to desktop have followed a zone change while the launcher icon was on screen, so
+     nothing is drawn from the moment the server says we are leaving a zone until a few seconds after the new one
+     has loaded, and the textures are re-created afterwards instead of trusting the old ones across it.
+     The 30 s limit on the first step is a safety net so a missed packet can never leave the UI hidden. ]]
+local zone_until = 0
+function draw.zone_out() zone_until = os.time() + 30 end
+function draw.zone_in(settle)
+    zone_until = os.time() + (settle or 3)
+    texcache = {}
+end
+function draw.zoning() return os.time() < zone_until end
 local cdef_done = false
 
 local function ensure_cdef()
@@ -402,6 +414,7 @@ end
 
 function draw.flush()
     if draw.nodraw then draw.mode = 'nodraw.flag' return end
+    if os.time() < zone_until then draw.counts.rect, draw.counts.image, draw.counts.text = 0, 0, 0; draw.mode = 'paused (zoning)' return end
     if not ok_imgui then draw.mode = 'no imgui' return end
     draw.counts.rect, draw.counts.image, draw.counts.text = 0, 0, 0
     prims, texts = compact(prims), compact(texts)

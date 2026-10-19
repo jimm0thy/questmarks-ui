@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.3.7'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.8'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -440,9 +440,9 @@ local function bb_tick()
     local now = os.time()
     if now - bb.last < 10 then return end
     bb.last = now
-    bb_write(('%s cpu=%.1fs frames=%d lua=%dKB prims=%d tex=%d draw(rect/img/txt)=%d/%d/%d errors=%d open=%s%s'):format(
+    bb_write(('%s cpu=%.1fs frames=%d lua=%dKB prims=%d tex=%d draw(rect/img/txt)=%d/%d/%d errors=%d mode=%s open=%s%s'):format(
         os.date('%H:%M:%S', now), os.clock(), bb.frames, math.floor(collectgarbage('count')),
-        draw.count(), draw.tex_count(), draw.counts.rect, draw.counts.image, draw.counts.text, draw.errors,
+        draw.count(), draw.tex_count(), draw.counts.rect, draw.counts.image, draw.counts.text, draw.errors, tostring(draw.mode),
         tostring(panel.is_open()) .. (draw.notex and ' NOTEX' or '') .. (draw.nodraw and ' NODRAW' or ''), draw.last_error and (' last_error=' .. tostring(draw.last_error)) or ''))
     bb.frames = 0
 end
@@ -946,6 +946,8 @@ try_register('command', 'qmui_command', function(e)
 end)
 
 try_register('packet_in', 'qmui_packet_in', function(e)
+    if e.id == 0x00B then draw.zone_out()        -- leaving a zone: stop drawing
+    elseif e.id == 0x00A then draw.zone_in(3) end -- arrived: draw again in 3 s, with fresh textures
     compat.fire('incoming chunk', e.id, e.data)
 end)
 
