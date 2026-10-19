@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.3.6'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.7'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -88,6 +88,9 @@ local defaults = {
          band; text and glyphs keep their own alpha, so the contrast floors the
          suite asserts still describe what is drawn. See theme.set_opacity. ]]
     opacity = 1.0,
+    --[[ Text outline: 'light' (one drop shadow, default), 'full' (the original four-way outline) or 'off'.
+         See draw.outline: fewer copies of every string means far fewer vertices drawn. ]]
+    outline = 'light',
 }
 
 local settings = config.load(defaults)
@@ -153,6 +156,7 @@ end
 -- ---------------------------------------------------------------------------
 
 theme.set_scale(settings.scale)
+draw.set_outline(settings.outline)
 theme.set_opacity(settings.opacity)
 panel.S.x, panel.S.y = settings.x, settings.y
 
@@ -461,6 +465,7 @@ local HELP = {
     '/qmui list            print the list to chat instead of drawing it',
     '/qmui pos <x> <y>     move the window',
     '/qmui icon            show or hide the book icon',
+    '/qmui outline light|full|off  text outline: light (default) draws fewer glyphs than full',
     '/qmui icon pos <x> <y>  move the book icon (or just drag it)',
     '/qmui bg [<name>]    pane background: navy, leather, parchment or mixed',
     '/qmui scale <n>       0.6 to 2.5',
@@ -739,6 +744,15 @@ windower.register_event('addon command', function(cmd, a1, a2, ...)
          argument in ui/panel.lua's header for why everything here has a command.
          It applies with more force to the launcher than to anything else: an icon
          dragged somewhere unreachable can only be recovered by typing. ]]
+    elseif cmd == 'outline' then
+        local v = (a1 or ''):lower()
+        if v ~= '' then
+            if not draw.set_outline(v) then err('usage: /qmui outline [light | full | off]') return end
+            settings.outline = v
+            pcall(function() settings:save() end)
+        end
+        msg('text outline = %s  (light = one shadow, full = four-way outline, off = none)', draw.outline)
+
     elseif cmd == 'icon' then
         if a1 == 'pos' then
             local x, y = tonumber(a2), tonumber((select(1, ...)))

@@ -59,6 +59,15 @@ end
 
 --[[ Diagnostic switch: if a file named `notex.flag` exists in the addon folder, no textures are loaded or
      drawn; images are drawn as plain grey squares. For ruling the texture path in or out of a crash. ]]
+--[[ Text outline. Every outlined string is drawn again for each outline copy, and every copy costs about four
+     vertices per character. 'light' (default) draws one drop shadow, 'full' the original four-way outline,
+     'off' none. Fewer vertices means less for the graphics layer to chew through. ]]
+draw.outline = 'light'
+function draw.set_outline(v)
+    if v == 'full' or v == 'light' or v == 'off' then draw.outline = v return true end
+    return false
+end
+
 draw.notex, draw.nodraw = false, false
 pcall(function()
     local base = (addon and addon.path) or './'
@@ -340,12 +349,16 @@ local function put_text(dl, t, scalable, use_dl_text)
         if imgui.TextUnformatted then imgui.TextUnformatted(t.s) else imgui.Text(t.s) end
         imgui.PopStyleColor()
     end
-    if t.stroke_w and t.stroke_w > 0 and t.sa and t.sa > 0 then
-        local o = 1
-        one(t.x - o, t.y, t.sa, t.sr, t.sg, t.sb)
-        one(t.x + o, t.y, t.sa, t.sr, t.sg, t.sb)
-        one(t.x, t.y - o, t.sa, t.sr, t.sg, t.sb)
-        one(t.x, t.y + o, t.sa, t.sr, t.sg, t.sb)
+    if t.stroke_w and t.stroke_w > 0 and t.sa and t.sa > 0 and draw.outline ~= 'off' then
+        if draw.outline == 'full' then              -- 4 extra copies of every string
+            local o = 1
+            one(t.x - o, t.y, t.sa, t.sr, t.sg, t.sb)
+            one(t.x + o, t.y, t.sa, t.sr, t.sg, t.sb)
+            one(t.x, t.y - o, t.sa, t.sr, t.sg, t.sb)
+            one(t.x, t.y + o, t.sa, t.sr, t.sg, t.sb)
+        else                                        -- 'light': one drop shadow, 1 extra copy
+            one(t.x + 1, t.y + 1, t.sa, t.sr, t.sg, t.sb)
+        end
     end
     one(t.x, t.y, t.a, t.r, t.g, t.b)
     if t.bold_ then one(t.x + 1, t.y, t.a, t.r, t.g, t.b) end
