@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.3.4'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.5'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -439,7 +439,7 @@ local function bb_tick()
     bb_write(('%s cpu=%.1fs frames=%d lua=%dKB prims=%d tex=%d draw(rect/img/txt)=%d/%d/%d errors=%d open=%s%s'):format(
         os.date('%H:%M:%S', now), os.clock(), bb.frames, math.floor(collectgarbage('count')),
         draw.count(), draw.tex_count(), draw.counts.rect, draw.counts.image, draw.counts.text, draw.errors,
-        tostring(panel.is_open()) .. (draw.notex and ' NOTEX' or ''), draw.last_error and (' last_error=' .. tostring(draw.last_error)) or ''))
+        tostring(panel.is_open()) .. (draw.notex and ' NOTEX' or '') .. (draw.nodraw and ' NODRAW' or ''), draw.last_error and (' last_error=' .. tostring(draw.last_error)) or ''))
     bb.frames = 0
 end
 
@@ -626,7 +626,7 @@ local function cmd_diag()
          draw.font_px, draw.advance_em)
     line('expansions (read from questmarks /qm expansions): %s', expansions_on and 'on' or 'off')
     line('quest log source: %s%s', replay.note, replay.used and ' (from questmarks saved copy)' or '')
-    line('textures: %s', draw.notex and 'OFF (notex.flag present)' or 'on')
+    line('textures: %s;  drawing: %s', draw.notex and 'OFF (notex.flag present)' or 'on', draw.nodraw and 'OFF (nodraw.flag present)' or 'on')
     line('port v%s by Semil, based on questmarks-ui v%s by DrNefarius', PORT_VERSION, ORIGINAL_VERSION)
     line('panel: %s at %d,%d scale %.2f', panel.is_open() and 'open' or 'closed',
          panel.S.x, panel.S.y, theme.scale)

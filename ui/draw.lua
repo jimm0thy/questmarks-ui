@@ -59,10 +59,13 @@ end
 
 --[[ Diagnostic switch: if a file named `notex.flag` exists in the addon folder, no textures are loaded or
      drawn; images are drawn as plain grey squares. For ruling the texture path in or out of a crash. ]]
-draw.notex = false
+draw.notex, draw.nodraw = false, false
 pcall(function()
-    local f = io.open(((addon and addon.path) or './') .. 'notex.flag', 'rb')
+    local base = (addon and addon.path) or './'
+    local f = io.open(base .. 'notex.flag', 'rb')
     if f then f:close(); draw.notex = true end
+    f = io.open(base .. 'nodraw.flag', 'rb')       -- draws NOTHING: skips all ImGui calls (the addon still runs)
+    if f then f:close(); draw.nodraw = true end
 end)
 
 local texcache = {}      -- path -> {id=, keep=} | false
@@ -385,6 +388,7 @@ local function paint(dl)
 end
 
 function draw.flush()
+    if draw.nodraw then draw.mode = 'nodraw.flag' return end
     if not ok_imgui then draw.mode = 'no imgui' return end
     draw.counts.rect, draw.counts.image, draw.counts.text = 0, 0, 0
     prims, texts = compact(prims), compact(texts)
