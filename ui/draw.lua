@@ -393,6 +393,15 @@ function draw.flush()
     draw.counts.rect, draw.counts.image, draw.counts.text = 0, 0, 0
     prims, texts = compact(prims), compact(texts)
 
+    --[[ Nothing visible (panel closed and the icon switched off): make no ImGui calls at all. Without this
+         the addon opened a full-screen window every frame just to draw nothing in it. ]]
+    local any = false
+    for i = 1, #prims do local o = prims[i]; if o.vis and not o.dead then any = true break end end
+    if not any then
+        for i = 1, #texts do local t = texts[i]; if t.vis and not t.dead and t.s ~= '' then any = true break end end
+    end
+    if not any then draw.mode = 'idle (nothing visible, no ImGui calls)' return end
+
     if not (imgui.Begin and imgui.GetWindowDrawList) then draw.mode = 'no imgui.Begin' return end
 
     local w, h = 1920, 1080
