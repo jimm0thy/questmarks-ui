@@ -1,5 +1,7 @@
 # questmarks-ui
 
+Ashita v4 port by **Semil (Vibe Coded by Claue)** of **questmarks-ui 1.0.0** by **DrNefarius** (Windower 4). 
+
 Your **accepted** quests as a browsable in-game list, grouped by the game's own
 quest-log regions, built on [questmarks](https://github.com/DrNefarius/questmarks/)' data.
 
