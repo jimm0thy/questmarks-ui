@@ -40,7 +40,7 @@ Everything below applies to both unless a heading says otherwise. Commands are w
    ```
    git clone https://github.com/jimm0thy/questmarks-ui Ashita/addons/questmarks-ui
    ```
-   or download the zip and rename the folder (GitHub adds a suffix such as `-main`).
+   or download the latest zip from the [Releases](https://github.com/jimm0thy/questmarks-ui/releases) page and rename the folder (GitHub adds a suffix such as `-main`).
 3. `/addon load questmarks-ui`
 
 A closed book appears. Click it to open the log, click it again to close, drag it wherever you like and it
@@ -82,7 +82,7 @@ log, from `build/rendered/`; and each step's **player-facing note** from
 description, no notes, and a step with no note stops being expandable. Nothing
 else changes and nothing breaks.
 
-**On Ashita the `build/` folders are in a git checkout of questmarks, but not in a zip that leaves them out.**
+**On Ashita the `build/` folders come with a `main` checkout or a release download of questmarks.**
 If `/qmui diag` says `step notes: unavailable` or `descriptions: ... not present`, copy questmarks' `build/` folder
 into `Ashita/addons/questmarks/` (it holds `build/authored/` and `build/rendered/`, about 16 MB). The notes also
 read `tools/pipeline/lib/player_voice.json` from questmarks. With them present, `/qmui diag` reports, for example,
