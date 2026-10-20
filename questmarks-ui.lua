@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.3.10'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.11'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -181,12 +181,22 @@ launcher.set_saver(function(x, y)
     pcall(function() settings:save() end)
 end)
 
---[[ questmarks keeps its settings in qm_settings_data.lua in its own folder. This addon only
-     READS the one flag it needs from it and never writes the file. ]]
+--[[ Files questmarks saves (qm_settings_data.lua, qm_log_cache.lua) now live in
+     <Ashita>/config/addons/questmarks/; older versions kept them in the addon folder. Look in the config
+     folder first and fall back, so either version of questmarks works. This addon only READS them. ]]
+local function qm_data_file(file)
+    local d = require('qm_cfgdir').dir('questmarks')
+    if d then
+        local f = io.open(d .. file, 'rb')
+        if f then f:close() return d .. file end
+    end
+    return qm_path() .. file
+end
+
 local expansions_on = false
 local function read_qm_expansions()
     local ok, v = pcall(function()
-        local f = io.open(qm_path() .. 'qm_settings_data.lua', 'rb')
+        local f = io.open(qm_data_file('qm_settings_data.lua'), 'rb')
         if not f then return nil end
         local src = f:read('*a'); f:close()
         local fn = load(src, '=qm_settings', 't', {})
@@ -895,7 +905,7 @@ end)
 
 --[[ The server sends the quest log at zone-in only. If this addon is loaded after that,
      the panel would sit on "Reading your quest log..." until the next zone. questmarks
-     keeps a copy of the last packets it received (qm_log_cache.lua in its own folder);
+     keeps a copy of the last packets it received (qm_log_cache.lua in its config folder);
      when nothing has arrived yet, those are fed through the normal packet handler once.
      A real packet from the server replaces them as soon as one arrives. ]]
 local logcache = require('qm_logcache')
@@ -908,7 +918,7 @@ local function try_replay()
     replay.last_try = now
     local pl = windower.ffxi.get_player()
     if not (pl and pl.name) then return end                  -- not logged in yet; try again
-    local list, saved = logcache.load(qm_path() .. 'qm_log_cache.lua', pl.name)
+    local list, saved = logcache.load(qm_data_file('qm_log_cache.lua'), pl.name)
     replay.done = true
     if not list then
         replay.note = 'no saved copy for ' .. pl.name

@@ -170,7 +170,7 @@ to turn it on.
 
 The server only sends your quest log when you zone, so an addon loaded mid-session would otherwise sit on
 "Reading your quest log..." until the next zone. questmarks keeps a copy of the last quest-log packets it saw per
-character (`questmarks/qm_log_cache.lua`), and this addon replays it once when nothing has arrived yet. A real packet
+character (`Ashita/config/addons/questmarks/qm_log_cache.lua`), and this addon replays it once when nothing has arrived yet. A real packet
 replaces the copy the moment one arrives. Keep questmarks loaded, ideally at login, so the copy stays fresh.
 `/qmui diag` shows which source is in use.
 
@@ -186,7 +186,7 @@ changed:
 | Text outline | stroked text | one drop shadow by default (`/qmui outline`) |
 | Zoning | n/a | nothing is drawn from the "leaving zone" packet (0x00B) until 3 s after the "arrived" packet (0x00A), and textures are re-created afterwards; a 30 s limit makes sure the UI can never stay hidden |
 | Mouse | Windower `mouse` event | Ashita `mouse` event mapped to the same type codes; clicks over the panel are blocked from the game |
-| Settings | `config` library | own small store, `qmui_settings_data.lua` next to the addon (no dependency on Ashita's `settings` lib) |
+| Settings | `config` library | own small store, `qmui_settings_data.lua` in `Ashita/config/addons/questmarks-ui/` (no dependency on Ashita's `settings` lib) |
 | Packets | `packets` library | `qm_packets.lua` (shared with the questmarks port) |
 | Names | `res/*.lua` files | Ashita's resource manager (zones, items, key items) |
 | Folder listing | `windower.get_dir` | `ashita.fs.get_dir`; the original's shell fallback (`dir /b`, for its offline tests) is disabled in the game |
@@ -249,6 +249,7 @@ What was found while tracking down freezes on Linux/Proton (CachyOS, Proton Cach
 | 0.3.8 | Drawing paused while zoning; textures re-created after |
 | 0.3.9 | The addon never starts a command shell in the game |
 | 0.3.10 | Nothing is drawn, and the mouse is left alone, until a character is in the world (hidden on the title screen and character select) |
+| 0.3.11 | Settings are saved in `Ashita/config/addons/questmarks-ui/` instead of the addon folder (an old file is copied over automatically), so updating or re-extracting the addon never resets them |
 
 ## Testing
 

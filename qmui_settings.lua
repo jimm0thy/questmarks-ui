@@ -1,6 +1,7 @@
 -- Self-contained settings store (replaces Ashita's `settings` library, whose API differs
 -- between Ashita v4 builds -- HorizonXI's copy failed inside load_settings).
--- Saved as a plain Lua table next to the addon: <addon>/qmui_settings_data.lua
+-- Saved as a plain Lua table: <Ashita>/config/addons/questmarks-ui/qmui_settings_data.lua
+-- (or next to the addon if that folder can't be used; an older copy there is migrated on first load).
 local M = {}
 local current, path
 
@@ -50,7 +51,7 @@ local function ser(v, indent, out)
 end
 
 function M.load(defaults)
-    path = addon_dir() .. 'qmui_settings_data.lua'
+    path = require('qm_cfgdir').path('questmarks-ui', 'qmui_settings_data.lua', addon_dir())
     current = copy(defaults)
     local ok, saved = pcall(function()
         local f = io.open(path, 'rb')
