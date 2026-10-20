@@ -95,6 +95,17 @@ local function zone_id()
     return (type(z) == 'number' and z > 0) and z or nil
 end
 
+--[[ True only while a character is actually in the world. The title screen and character select have no
+     party member 0 with a target index and a job, so this is false there. Cheap; safe to call every frame. ]]
+function compat.in_world()
+    local ok, r = pcall(function()
+        if not (player_name() and zone_id() and me_index()) then return false end
+        local j = mm():GetPlayer():GetMainJob()
+        return type(j) == 'number' and j > 0
+    end)
+    return ok and r or false
+end
+
 -- ---------------------------------------------------------------------------
 -- windower.ffxi.*
 -- ---------------------------------------------------------------------------

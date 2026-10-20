@@ -248,6 +248,7 @@ What was found while tracking down freezes on Linux/Proton (CachyOS, Proton Cach
 | 0.3.7 | Lighter text outline by default; `/qmui outline` |
 | 0.3.8 | Drawing paused while zoning; textures re-created after |
 | 0.3.9 | The addon never starts a command shell in the game |
+| 0.3.10 | Nothing is drawn, and the mouse is left alone, until a character is in the world (hidden on the title screen and character select) |
 
 ## Testing
 

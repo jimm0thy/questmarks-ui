@@ -17,7 +17,7 @@ addon.author   = 'Semil (Ashita port); original by DrNefarius'
 addon.desc     = 'Browsable list of your accepted quests, built on questmarks data'
 addon.link     = 'https://github.com/'
 -- Two version numbers: this port's own, and the Windower release it was ported from.
-local PORT_VERSION     = '0.3.9'   -- Ashita port by Semil; bump on every port change
+local PORT_VERSION     = '0.3.10'   -- Ashita port by Semil; bump on every port change
 local ORIGINAL_VERSION = '1.0.0'   -- questmarks-ui by DrNefarius (Windower 4) this is based on
 addon.version  = PORT_VERSION
 -- Commands: /qmui and /questlog (was /qmui under Windower).
@@ -957,12 +957,18 @@ local MOUSE = {[512] = 0, [513] = 1, [514] = 2, [516] = 3, [517] = 4, [519] = 3,
 try_register('mouse', 'qmui_mouse', function(e)
     local t = MOUSE[e.message]
     if not t then return end
+    if not compat.in_world() then return end         -- title screen / character select: leave the mouse alone
     if compat.fire_ret('mouse', t, e.x, e.y, e.delta, e.blocked) then e.blocked = true end
 end)
 
 local font_applied = false
 try_register('d3d_present', 'qmui_present', function()
     compat.tick()
+    if not compat.in_world() then                    -- title screen / character select: draw nothing
+        draw.mode = 'hidden (not logged in)'
+        bb_tick()
+        return
+    end
     local changed = draw.measure_font()
     if changed or not font_applied then
         font_applied = true
