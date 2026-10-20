@@ -1,6 +1,6 @@
 # questmarks-ui
 
-Ashita v4 port by **Semil (Vibe Coded by Claue)** of **questmarks-ui 1.0.0** by **DrNefarius** (Windower 4). 
+Ashita v4 port by **Semil (Vibe Coded with Claue)** of **questmarks-ui 1.0.0** by **DrNefarius** (Windower 4). 
 
 Your **accepted** quests as a browsable in-game list, grouped by the game's own
 quest-log regions, built on [questmarks](https://github.com/DrNefarius/questmarks/)' data.
@@ -296,7 +296,7 @@ goes; that directory's README explains the whole chain.
 
 ## Credits and licence
 
-**Ashita v4 port by Semil.** The original addon, its model layer and its art are DrNefarius'. The port is MIT
+**Ashita v4 port by Semil (Vibe Coded with Claue).** The original addon, its model layer and its art are DrNefarius'. The port is MIT
 licensed like the original (see `LICENSE`); `NOTICE` records the provenance of every asset and the Ashita port.
 
 
