@@ -3,14 +3,7 @@
 Ashita v4 port by **Semil (Vibe Coded with Claue)** of **questmarks-ui 1.0.0** by **DrNefarius** (Windower 4). 
 
 Your **accepted** quests as a browsable in-game list, grouped by the game's own
-quest-log regions, built on [questmarks](https://github.com/DrNefarius/questmarks/)' data.
-
-Two versions live in this repository:
-
-| | Platform | Version | Author |
-|---|---|---|---|
-| **Ashita v4 port** | Ashita v4, Windows or Linux/Proton | port **0.3.9** | **Semil** |
-| Original | Windower 4 | 1.0.0 | **DrNefarius** |
+quest-log regions, built on [questmarks](https://github.com/jimm0thy/questmarks)' data.
 
 The port keeps the original's quest model, layout and data and replaces only the platform layer.
 Everything below applies to both unless a heading says otherwise. Commands are written the Ashita way
