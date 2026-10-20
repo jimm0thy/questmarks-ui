@@ -34,9 +34,9 @@ Everything below applies to both unless a heading says otherwise. Commands are w
 
 ### Ashita v4
 
-1. Install the Ashita port of **questmarks** first, at `Ashita/addons/questmarks/` (it does not need to be loaded,
+1. Install the Ashita port of **questmarks** first (clone `main`, or download the latest [release](https://github.com/jimm0thy/questmarks/releases)), at `Ashita/addons/questmarks/` (it does not need to be loaded,
    but loading it keeps the saved quest log fresh, see [Late load](#late-load-and-the-saved-quest-log)).
-2. Put this addon at `Ashita/addons/questmarks-ui/`, so that `questmarks-ui.lua` sits directly inside it. Either:
+2. Put this addon at `Ashita/addons/questmarks-ui/`, so that `questmarks-ui.lua` sits directly inside it. Either clone `main`:
    ```
    git clone https://github.com/jimm0thy/questmarks-ui Ashita/addons/questmarks-ui
    ```
