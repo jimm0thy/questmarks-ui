@@ -275,6 +275,10 @@ local function list_dir(path)
          because io.popen on Windows spawns cmd.exe, which has no `ls`. `dir /b`
          is the cmd equivalent and wants backslashes. The POSIX form is kept
          second for a shell that has it. ]]
+    --[[ Ashita port: never start a shell from inside the game. Under Wine/Proton launching cmd.exe on the
+         render thread can stall it for seconds, and it is only reached when the folder is missing or empty. ]]
+    if windower.no_shell then return nil end
+
     local win = path:gsub('/', '\\'):gsub('\\+$', '')
     return shell_list('dir /b "' .. win .. '" 2>nul')
         or shell_list('ls -1 "' .. path .. '" 2>/dev/null')

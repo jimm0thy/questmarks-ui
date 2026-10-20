@@ -37,6 +37,8 @@ end
 -- Filesystem (used only by the optional notes/description readers)
 -- ---------------------------------------------------------------------------
 
+windower.no_shell = true     -- notes.lua must never fall back to io.popen('dir ...') in game
+
 function windower.dir_exists(path)
     -- ASSUMPTION: ashita.fs.exists answers for directories as well as files.
     if ashita and ashita.fs and ashita.fs.exists then
